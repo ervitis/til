@@ -4,9 +4,9 @@
 
 Related
 
-> https://stackoverflow.com/questions/46817524/sending-error-message-to-error-channel-using-spring-cloud-stream
-> https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/2.1.2.RELEASE/single/spring-cloud-stream-binder-kafka.html#kafka-error-channels
-> https://github.com/spring-cloud/spring-cloud-stream/issues/1338#issuecomment-378493804
+> - https://stackoverflow.com/questions/46817524/sending-error-message-to-error-channel-using-spring-cloud-stream
+> - https://cloud.spring.io/spring-cloud-static/spring-cloud-stream-binder-kafka/2.1.2.RELEASE/single/spring-cloud-stream-binder-kafka.html#kafka-error-channels
+> - https://github.com/spring-cloud/spring-cloud-stream/issues/1338#issuecomment-378493804
 
 The `application.yaml` should have the following properties activated inside the producer bindings
 
