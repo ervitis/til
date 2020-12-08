@@ -87,56 +87,56 @@ Then, the code to process the files. I'm using the library [gofpdf](github.com/j
 
 ```go
 const (
-	path = "/tmp/files"
+  path = "/tmp/files"
 )
 
 type (
-	StreamData struct {
-		data     []byte
-		fileName string
-	}
+  StreamData struct {
+    data     []byte
+    fileName string
+  }
 )
 
 func loadFileNames() []string {
-	info, err := ioutil.ReadDir(path)
-	if err != nil {
-		panic(err)
-	}
+  info, err := ioutil.ReadDir(path)
+  if err != nil {
+    panic(err)
+  }
 
-	var fileNames []string
-	for _, i := range info {
-		fileNames = append(fileNames, path+"/"+i.Name())
-	}
-	return fileNames
+  var fileNames []string
+  for _, i := range info {
+    fileNames = append(fileNames, path+"/"+i.Name())
+  }
+  return fileNames
 }
 
 func openFiles(paths []string) <-chan StreamData {
-	streamOut := make(chan StreamData)
-	go func() {
-		for _, p := range paths {
-			f, err := os.Open(p)
-			if err != nil {
-				fmt.Println(err)
-			}
-			b, _ := ioutil.ReadAll(f)
-			streamData := StreamData{data: b, fileName: f.Name()}
-			streamOut <- streamData
-		}
-		close(streamOut)
-	}()
-	return streamOut
+  streamOut := make(chan StreamData)
+  go func() {
+    for _, p := range paths {
+      f, err := os.Open(p)
+      if err != nil {
+        fmt.Println(err)
+      }
+      b, _ := ioutil.ReadAll(f)
+      streamData := StreamData{data: b, fileName: f.Name()}
+      streamOut <- streamData
+    }
+    close(streamOut)
+  }()
+  return streamOut
 }
 
 func convertToPdf(done chan bool, streamIn <-chan StreamData) <-chan StreamData {
-	streamOut := make(chan StreamData)
-	go func() {
-		for stream := range streamIn {
-			generatePdf(stream.data, stream.fileName)
+  streamOut := make(chan StreamData)
+  go func() {
+    for stream := range streamIn {
+      generatePdf(stream.data, stream.fileName)
     }
     close(streamOut)
     done <- true
-	}()
-	return streamOut
+  }()
+  return streamOut
 }
 
 func generatePdf(data []byte, fileName string) {
