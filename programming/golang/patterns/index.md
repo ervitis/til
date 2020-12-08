@@ -61,3 +61,104 @@ for w := 0; w < numberWorkers; w++ {
   <- finished
 }
 ```
+
+## FanIn - FanOut
+
+Or pipelines, when we want to paralelize work using I/O and CPU execution.
+In my example I wanted to read files from a directory and convert them in pdf.
+
+From
+- [Pipelines pattern](https://blog.friendsofgo.tech/posts/patrones-de-concurrencia-pipeline/) (Spanish)
+- [Concurrency patterns](https://medium.com/@thejasbabu/concurrency-patterns-golang-5c5e1bcd0833)
+
+The code to generate the random files
+
+> Don't forget to delete previously any files created before inside the `/tmp/files` folder
+
+```bash
+#!/usr/bin/env bash
+
+mkdir -p /tmp/files
+
+for i in {0..10000}; do echo "hello world, this is a test file ${i}" > "/tmp/files/File$(printf "%03d" "$i").txt"; done
+```
+
+Then, the code to process the files. I'm using the library [gofpdf](github.com/jung-kurt/gofpdf), it's unmantained but it's ok for this example.
+
+```go
+const (
+	path = "/tmp/files"
+)
+
+type (
+	StreamData struct {
+		data     []byte
+		fileName string
+	}
+)
+
+func loadFileNames() []string {
+	info, err := ioutil.ReadDir(path)
+	if err != nil {
+		panic(err)
+	}
+
+	var fileNames []string
+	for _, i := range info {
+		fileNames = append(fileNames, path+"/"+i.Name())
+	}
+	return fileNames
+}
+
+func openFiles(paths []string) <-chan StreamData {
+	streamOut := make(chan StreamData)
+	go func() {
+		for _, p := range paths {
+			f, err := os.Open(p)
+			if err != nil {
+				fmt.Println(err)
+			}
+			b, _ := ioutil.ReadAll(f)
+			streamData := StreamData{data: b, fileName: f.Name()}
+			streamOut <- streamData
+		}
+		close(streamOut)
+	}()
+	return streamOut
+}
+
+func convertToPdf(done chan bool, streamIn <-chan StreamData) <-chan StreamData {
+	streamOut := make(chan StreamData)
+	go func() {
+		for stream := range streamIn {
+			generatePdf(stream.data, stream.fileName)
+    }
+    close(streamOut)
+    done <- true
+	}()
+	return streamOut
+}
+
+func generatePdf(data []byte, fileName string) {
+	pdfFile := gofpdf.New("P", "mm", "A4", "arial")
+	pdfFile.AddPage()
+	pdfFile.SetFont("arial", "", 12)
+	pdfFile.Cell(40,10, string(data))
+	if err := pdfFile.OutputFileAndClose(fileName + ".pdf"); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func main() {
+	start := time.Now()
+	files := loadFileNames()
+
+	done := make(chan bool)
+
+	inputStream := openFiles(files)
+	convertToPdf(done, inputStream)
+	<-done
+
+	fmt.Printf("\nTime finished in %f\n", time.Since(start).Seconds())
+}
+```
