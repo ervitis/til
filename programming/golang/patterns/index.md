@@ -140,25 +140,25 @@ func convertToPdf(done chan bool, streamIn <-chan StreamData) <-chan StreamData 
 }
 
 func generatePdf(data []byte, fileName string) {
-	pdfFile := gofpdf.New("P", "mm", "A4", "arial")
-	pdfFile.AddPage()
-	pdfFile.SetFont("arial", "", 12)
-	pdfFile.Cell(40,10, string(data))
-	if err := pdfFile.OutputFileAndClose(fileName + ".pdf"); err != nil {
-		fmt.Println(err)
-	}
+  pdfFile := gofpdf.New("P", "mm", "A4", "arial")
+  pdfFile.AddPage()
+  pdfFile.SetFont("arial", "", 12)
+  pdfFile.Cell(40,10, string(data))
+  if err := pdfFile.OutputFileAndClose(fileName + ".pdf"); err != nil {
+    fmt.Println(err)
+  }
 }
 
 func main() {
-	start := time.Now()
-	files := loadFileNames()
+  start := time.Now()
+  files := loadFileNames()
 
-	done := make(chan bool)
+  done := make(chan bool)
 
-	inputStream := openFiles(files)
-	convertToPdf(done, inputStream)
-	<-done
+  inputStream := openFiles(files)
+  convertToPdf(done, inputStream)
+  <-done
 
-	fmt.Printf("\nTime finished in %f\n", time.Since(start).Seconds())
+  fmt.Printf("\nTime finished in %f\n", time.Since(start).Seconds())
 }
 ```
