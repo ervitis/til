@@ -162,3 +162,169 @@ func main() {
   fmt.Printf("\nTime finished in %f\n", time.Since(start).Seconds())
 }
 ```
+
+## Pooling
+
+This pattern is used in database libraries when it needs to create the connection and maintain the resource until its released and get back to the "pool" of resources.
+
+In Golang there is a `sync.Pool()` function but it releases randomly the elements inside of the pool.
+
+Let's take an example. How can we administrate the tables of a restaurant when clients go in or book them.
+
+I have decided to use `channels` but it can be implemented with `slices` too.
+
+```go
+type (
+  Table struct {
+    Seats int
+    ID    int
+  }
+
+  fnFactory func() (TablePoolIface, error)
+
+  TablePoolIface interface {
+    GetID() int
+    Close()
+    ServingFood()
+    Cleaning()
+  }
+
+  TablePool struct {
+    idle     []TablePoolIface
+    occupied []TablePoolIface
+    mtx      sync.Mutex
+
+    closed    bool
+    resources chan TablePoolIface
+    factory   fnFactory
+  }
+
+  PoolIface interface {
+    Release(TablePoolIface)
+    Close()
+    Acquire() (TablePoolIface, error)
+  }
+)
+
+var (
+  ErrPoolEmpty  = errors.New("Empty table pool")
+  ErrPoolClosed = errors.New("The pool has been closed")
+)
+
+func (t *Table) GetID() int {
+  return t.ID
+}
+
+func (t *Table) Close() {
+  fmt.Printf("Closed table id %d\n", t.ID)
+}
+
+func (t *Table) ServingFood() {
+  fmt.Printf("Serving food in table id %d\n", t.ID)
+  time.Sleep(4 * time.Second)
+  fmt.Printf("Finished food in table id %d\n", t.ID)
+}
+
+func (t *Table) Cleaning() {
+  fmt.Printf("Cleaning table id %d\n", t.ID)
+}
+
+func poolingFactory() (TablePoolIface, error) {
+  return &Table{}, nil
+}
+
+func New(fn fnFactory, tablePools []TablePoolIface) (PoolIface, error) {
+  if len(tablePools) == 0 {
+    return nil, ErrPoolEmpty
+  }
+
+  resources := make(chan TablePoolIface, len(tablePools))
+  for _, t := range tablePools {
+    resources <- t
+  }
+
+  return &TablePool{
+    factory:   fn,
+    resources: resources,
+    mtx:       sync.Mutex{},
+  }, nil
+}
+
+func (p *TablePool) Acquire() (TablePoolIface, error) {
+  select {
+  case t, ok := <-p.resources:
+    if !ok {
+      return nil, ErrPoolClosed
+    }
+    return t, nil
+  default:
+    return p.factory()
+  }
+}
+
+func (p *TablePool) Release(table TablePoolIface) {
+  p.mtx.Lock()
+  defer p.mtx.Unlock()
+
+  if p.closed {
+    p.Close()
+    return
+  }
+
+  select {
+  case p.resources <- table:
+  default:
+    table.Close()
+  }
+}
+
+func (p *TablePool) Close() {
+  p.mtx.Lock()
+  defer p.mtx.Unlock()
+
+  if p.closed {
+    return
+  }
+
+  close(p.resources)
+
+  for _, table := range p.occupied {
+    table.Close()
+  }
+}
+
+func main() {
+  tablesRestaurant := make([]TablePoolIface, 0)
+  for i := 0; i < 4; i++ {
+    table := &Table{Seats: 4, ID: i + 1}
+    tablesRestaurant = append(tablesRestaurant, table)
+  }
+
+  pool, err := New(poolingFactory, tablesRestaurant)
+  if err != nil {
+    panic(err)
+  }
+
+  bookedTable, err := pool.Acquire()
+  if err != nil {
+    panic(err)
+  }
+
+  bookedTable.ServingFood()
+  bookedTable.Cleaning()
+
+  moreTables := make([]TablePoolIface, 0)
+  for range []int{2, 3, 4, 5} {
+    t, err := pool.Acquire()
+    if err != nil {
+      fmt.Println(err)
+      break
+    }
+    moreTables = append(moreTables, t)
+  }
+
+  pool.Release(bookedTable)
+
+  pool.Close()
+}
+```
