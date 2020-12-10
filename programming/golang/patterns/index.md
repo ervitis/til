@@ -190,8 +190,6 @@ type (
   }
 
   TablePool struct {
-    idle     []TablePoolIface
-    occupied []TablePoolIface
     mtx      sync.Mutex
 
     closed    bool
@@ -288,7 +286,7 @@ func (p *TablePool) Close() {
 
   close(p.resources)
 
-  for _, table := range p.occupied {
+  for table := range p.resources {
     table.Close()
   }
 }
