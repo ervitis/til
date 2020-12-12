@@ -326,3 +326,99 @@ func main() {
   pool.Close()
 }
 ```
+
+## Functional pattern
+
+When we want to build an object with optional parameters. We have two versions:
+From [Uber code style](https://github.com/uber-go/guide/blob/master/style.md#functional-options)
+
+#### Using currying functions
+
+```go
+type (
+  FullName struct {
+    name    string
+    surName string
+  }
+
+  Option func(*FullName)
+)
+
+// Functional pattern
+func WithName(name string) Option {
+  return func(parameter *FullName) {
+    parameter.name = name
+  }
+}
+
+func WithSurName(surName string) Option {
+  return func(parameter *FullName) {
+    parameter.surName = surName
+  }
+}
+
+func defaultFullName() *FullName {
+  return &FullName{
+    name:    "",
+    surName: "",
+  }
+}
+
+func NewFullName(opts ...Option) *FullName {
+  fn := defaultFullName()
+
+  for _, opt := range opts {
+    opt(fn)
+  }
+
+  return fn
+}
+```
+
+#### Using types and an interface for better testing
+
+```go
+type (
+  FullName struct {
+    name    string
+    surName string
+  }
+
+  Option interface {
+    apply(*FullName)
+  }
+
+  nameOption    string
+  surNameOption string
+)
+
+func (n nameOption) apply(opts *FullName) {
+  opts.name = string(n)
+}
+
+func WithName(name string) Option {
+  return nameOption(name)
+}
+
+func (sn surNameOption) apply(opts *FullName) {
+  opts.surName = string(sn)
+}
+
+func WithSurName(surName string) Option {
+  return surNameOption(surName)
+}
+
+func defaultFullName() *FullName {
+  return &FullName{}
+}
+
+func NewFullName(opts ...Option) *FullName {
+  fn := defaultFullName()
+
+  for _, opt := range opts {
+    opt.apply(fn)
+  }
+
+  return fn
+}
+```
