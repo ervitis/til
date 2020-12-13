@@ -1,6 +1,48 @@
 # Patterns
 
-## Worker pool
+# Design patterns
+
+## Creational patterns
+
+- Abstract factory
+- Builder
+- Factory Method
+- Singleton
+- Pooling
+
+## Structural patterns
+
+- Bridge
+- Composite
+- Decorator
+- Facade
+- Flyweight
+- Proxy
+
+## Behavioral patterns
+
+- Chain of responsability
+- Command
+- Mediator
+- Observer
+- Strategy
+- Memento
+
+## Messaging patterns
+
+- [FanIn-FanOut](#fanin---fanout)
+
+## Idioms
+
+- [Functional pattern](#functional-pattern)
+
+## Concurrency pattern
+
+- [Worker pool](#worker-pool)
+
+---
+
+### Worker pool
 
 From [gobyexample worker pools example](https://gobyexample.com/worker-pools)
 
@@ -62,7 +104,9 @@ for w := 0; w < numberWorkers; w++ {
 }
 ```
 
-## FanIn - FanOut
+<button><a href="#top">Back to top</a></button>
+
+### FanIn - FanOut
 
 Or pipelines, when we want to paralelize work using I/O and CPU execution.
 In my example I wanted to read files from a directory and convert them in pdf.
@@ -163,7 +207,9 @@ func main() {
 }
 ```
 
-## Pooling
+<button><a href="#top">Back to top</a></button>
+
+### Pooling
 
 This pattern is used in database libraries when it needs to create the connection and maintain the resource until its released and get back to the "pool" of resources.
 
@@ -327,6 +373,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ## Functional pattern
 
 When we want to build an object with optional parameters. We have two versions:
@@ -422,3 +470,5 @@ func NewFullName(opts ...Option) *FullName {
   return fn
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
