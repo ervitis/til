@@ -4,9 +4,9 @@
 
 ## Creational patterns
 
-- Abstract factory
+- [Abstract factory](#abstract-factory)
 - Builder
-- Factory Method
+- [Factory Method](#factory-method)
 - Singleton
 - Pooling
 
@@ -41,6 +41,223 @@
 - [Worker pool](#worker-pool)
 
 ---
+
+### Abstract factory
+
+Create familiarity group of objects
+
+```go
+package main
+
+import "fmt"
+
+const (
+  windowsGui int = iota
+  macGui
+)
+
+type (
+  event func()
+
+  button struct{}
+
+  buttonIface interface {
+    onClick(event)
+  }
+
+  checkbox struct{}
+
+  checkboxIface interface {
+    onClick(event)
+  }
+
+  guiFactory interface {
+    createButton() buttonIface
+    createCheckbox() checkboxIface
+  }
+
+  winFactory struct{
+    buttonIface
+    checkboxIface
+  }
+
+  winFactoryIface interface {
+    createButton() buttonIface
+    createCheckbox() checkboxIface
+  }
+
+  macFactory struct{
+    buttonIface
+    checkboxIface
+  }
+
+  macFactoryIface interface {
+    createButton() buttonIface
+    createCheckbox() checkboxIface
+  }
+
+  application struct {
+    button
+    guiFactory
+  }
+
+  applicationIface interface {
+    createUI(int) guiFactory
+    paint()
+  }
+)
+
+func (b *button) onClick(e event) {
+  e()
+  fmt.Println("button clicked")
+}
+
+func (c *checkbox) onClick(e event) {
+  e()
+  fmt.Println("checkbox clicked")
+}
+
+func (w *winFactory) createButton() buttonIface {
+  return new(button)
+}
+
+func (w *winFactory) createCheckbox() checkboxIface {
+  return new(checkbox)
+}
+
+func (m *macFactory) createButton() buttonIface {
+  return new(button)
+}
+
+func (m *macFactory) createCheckbox() checkboxIface {
+  return new(checkbox)
+}
+
+func newApplication() applicationIface {
+  return new(application)
+}
+
+func (a *application) paint() {
+  fmt.Println("paint application")
+}
+
+func (a *application) createUI(typeGui int) guiFactory {
+  if typeGui == windowsGui {
+    return &winFactory{}
+  }
+
+  if typeGui == macGui {
+    return &macFactory{}
+  }
+  return nil
+}
+
+func main() {
+  application := newApplication()
+
+  windowsFactory := application.createUI(windowsGui)
+  winButton := windowsFactory.createButton()
+  winCheckbox := windowsFactory.createCheckbox()
+
+  winButton.onClick(func() {fmt.Println("clicky")} )
+  winCheckbox.onClick(func() {fmt.Println("selected")})
+}
+
+```
+
+
+### Factory method
+
+Creating objects with a base class or interface. The object created is an interface type
+
+```go
+package main
+
+import "fmt"
+
+const (
+  windowsDialogType int = iota
+  webDialogType
+)
+
+type (
+  event func()
+
+  button interface {
+    onClick(...event)
+    render()
+  }
+
+  windowsDialog struct{}
+  webDialog struct{}
+
+  dialog struct{}
+  dialogIface interface {
+    render()
+    createButton(int) button
+  }
+)
+
+func executeEventCommand(events ...event) {
+  for _, ev := range events {
+    ev()
+  }
+}
+
+func (windows *windowsDialog) render() {
+  fmt.Println("rendering windows dialog")
+}
+
+func (windows *windowsDialog) onClick(events ...event) {
+  executeEventCommand(events...)
+}
+
+func (web *webDialog) render() {
+  fmt.Println("rendering web dialog")
+}
+
+func (web *webDialog) onClick(events ...event) {
+  executeEventCommand(events...)
+}
+
+func (d *dialog) createButton(typeButton int) button {
+  if typeButton == windowsDialogType {
+    return &windowsDialog{}
+  }
+
+  if typeButton == webDialogType {
+    return &webDialog{}
+  }
+
+  return nil
+}
+
+func (d *dialog) render() {
+  fmt.Println("rendering dialog")
+}
+
+func newDialog() dialogIface {
+  return &dialog{}
+}
+
+func main() {
+  dialog := newDialog()
+
+  dialog.render()
+  windowsButton := dialog.createButton(windowsDialogType)
+  windowsButton.render()
+  windowsButton.onClick(func() {
+    fmt.Println("clicked windows close")
+  })
+
+  htmlButton := dialog.createButton(webDialogType)
+  htmlButton.render()
+  htmlButton.onClick(func() {
+    fmt.Println("clicked html close")
+  })
+}
+```
+
 
 ### Worker pool
 
