@@ -5,7 +5,7 @@
 ## Creational patterns
 
 - [Abstract factory](#abstract-factory)
-- Builder
+- [Builder](#builder)
 - [Factory Method](#factory-method)
 - Singleton
 - Pooling
