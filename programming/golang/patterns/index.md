@@ -165,6 +165,112 @@ func main() {
 
 ```
 
+### Builder
+
+```go
+package main
+
+import "fmt"
+
+type (
+  engine struct{}
+  car    struct {
+    seats        int
+    engine       *engine
+    tripComputer bool
+    gps          bool
+  }
+
+  carBuilder struct {
+    *car
+  }
+  carBuilderIface interface {
+    reset()
+    setSeats(int)
+    setEngine(*engine)
+    setTripComputer()
+    setGPS()
+    build() *car
+  }
+
+  directorIface interface {
+    makeSUV() carBuilderIface
+    makeSportsCar() carBuilderIface
+  }
+  director struct {
+    carBuilder carBuilderIface
+  }
+)
+
+func newDirector(carBuilder carBuilderIface) directorIface {
+  return &director{carBuilder: carBuilder}
+}
+
+func newCarBuilder() carBuilderIface {
+  return &carBuilder{car: &car{}}
+}
+
+func (d *director) makeSUV() carBuilderIface {
+  d.carBuilder.setEngine(&engine{})
+  d.carBuilder.setGPS()
+  d.carBuilder.setSeats(4)
+  d.carBuilder.setTripComputer()
+
+  return d.carBuilder
+}
+
+func (d *director) makeSportsCar() carBuilderIface {
+  d.carBuilder.setEngine(&engine{})
+  d.carBuilder.setGPS()
+  d.carBuilder.setSeats(2)
+  d.carBuilder.setTripComputer()
+
+  return d.carBuilder
+}
+
+func (c *car) build() *car {
+  return c
+}
+
+func (b *carBuilder) reset() {
+  b.engine = nil
+  b.seats = 0
+  b.gps = false
+  b.tripComputer = false
+}
+
+func (b *carBuilder) setSeats(seats int) {
+  b.seats = seats
+}
+
+func (b *carBuilder) setEngine(engine *engine) {
+  b.engine = engine
+}
+
+func (b *carBuilder) setTripComputer() {
+  b.tripComputer = true
+}
+
+func (b *carBuilder) setGPS() {
+  b.gps = true
+}
+
+func (b *carBuilder) build() *car {
+  return b.car
+}
+
+func (c *car) engineOn() {
+  fmt.Println("start engine")
+}
+
+func main() {
+  director := newDirector(newCarBuilder())
+  carBuilder := director.makeSportsCar()
+  car := carBuilder.build()
+  car.engineOn()
+}
+```
+
 
 ### Factory method
 
