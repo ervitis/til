@@ -370,7 +370,110 @@ func main() {
 
 ### Prototype
 
+Creating objects using a copy of them
 
+```go
+const (
+  black colorEnum = iota
+  blue
+  red
+  yellow
+
+  blackName  string = "black"
+  blueName   string = "blue"
+  redName    string = "red"
+  yellowName string = "yellow"
+)
+
+type (
+  colorEnum int
+  color     map[colorEnum]string
+
+  shape struct {
+    x, y  int
+    color colorEnum
+  }
+
+  shapeIface interface {
+    clone() shapeIface
+    draw()
+  }
+
+  rectangle struct {
+    shape
+  }
+
+  circle struct {
+    shape
+  }
+)
+
+var (
+  colors color
+)
+
+func init() {
+  colors = color{
+    black:  blackName,
+    blue:   blueName,
+    red:    redName,
+    yellow: yellowName,
+  }
+}
+
+func (c *color) getKey(value string) colorEnum {
+  for k, v := range colors {
+    if v == value {
+      return k
+    }
+  }
+  return -1
+}
+
+func (c *color) getValue(key colorEnum) string {
+  if v, exists := colors[key]; !exists {
+    return ""
+  } else {
+    return v
+  }
+}
+
+func newCircle(color string, x, y int) *circle {
+  return &circle{shape{color: colors.getKey(color), x: x, y: y}}
+}
+
+func newRectangle(color string, x, y int) *rectangle {
+  return &rectangle{shape{color: colors.getKey(color), x: x, y: y}}
+}
+
+func (r *rectangle) clone() shapeIface {
+  return r
+}
+
+func (r *rectangle) draw() {
+  fmt.Printf("draw rectangle %d %d in %s\n", r.x, r.y, colors.getValue(r.color))
+}
+
+func (c *circle) clone() shapeIface {
+  return c
+}
+
+func (c *circle) draw() {
+  fmt.Printf("draw circle %d %d in %s\r\n", c.x, c.y, colors.getValue(c.color))
+}
+
+func main() {
+  myCircle := newCircle(blackName, 4, 5)
+  myCircle.draw()
+  copyOfCircle := myCircle.clone()
+  copyOfCircle.draw()
+
+  myRectangle := newRectangle(blueName, 2, 3)
+  myRectangle.draw()
+  copyOfRectangle := myRectangle.clone()
+  copyOfRectangle.draw()
+}
+```
 
 ### Pooling
 
