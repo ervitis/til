@@ -447,7 +447,11 @@ func newRectangle(color string, x, y int) *rectangle {
 }
 
 func (r *rectangle) clone() shapeIface {
-  return r
+  return &rectangle{shape{
+    x:     r.x,
+    y:     r.y,
+    color: r.color,
+  }}
 }
 
 func (r *rectangle) draw() {
@@ -455,7 +459,11 @@ func (r *rectangle) draw() {
 }
 
 func (c *circle) clone() shapeIface {
-  return c
+  return &circle{shape{
+    x:     c.x,
+    y:     c.y,
+    color: c.color,
+  }}
 }
 
 func (c *circle) draw() {
