@@ -366,7 +366,40 @@ func main() {
 
 ### Singleton
 
+Single instance of an object used globally
 
+```go
+type (
+  database struct {
+    isConnected bool
+  }
+
+  databaseIface interface {
+    connect()
+  }
+)
+
+var (
+  db databaseIface
+)
+
+func newDatabase() databaseIface {
+  return &database{isConnected: false}
+}
+
+func (db *database) connect() {
+  db.isConnected = true
+}
+
+func init() {
+  db = newDatabase()
+}
+
+func main() {
+  db.connect()
+  fmt.Println("database is connected")
+}
+```
 
 ### Prototype
 
