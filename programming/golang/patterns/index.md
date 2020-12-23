@@ -13,6 +13,7 @@
 
 ## Structural patterns
 
+- [Adapter](#adapter)
 - Bridge
 - Composite
 - Decorator
@@ -682,6 +683,145 @@ func main() {
 
 <button><a href="#top">Back to top</a></button>
 
+
+## Structural patterns
+
+### Adapter
+
+Integrate different types of implementation using a common API. For example, we have two types of payment proccesses: paypal and bank account. Each one has different implementation but has a common method: `pay`.
+
+The client is the shopping cart where it calls the `checkout` function to process the payment. The adaptee we are using is the paypal in this case.
+
+```go
+type (
+  money struct {
+    amount   float64
+    currency string
+  }
+
+  payment struct {
+    apiKey string
+  }
+  paymentIface interface {
+    pay(string, string, float64)
+  }
+
+  account struct {
+    owner, email, currency string
+    balance                float64
+  }
+
+  transaction struct {
+    from   *account
+    to     *account
+    amount float64
+    date   time.Time
+    reason string
+  }
+
+  gateway struct {
+    token    string
+    accounts []*account
+  }
+
+  item struct {
+    name  string
+    price float64
+  }
+
+  shoppingCart struct {
+    items            []*item
+    paymentMethod    paymentIface
+    shopEmailAddress string
+  }
+
+  bankAdapter struct {
+    gateway *gateway
+  }
+
+  payPalAdapter struct {
+    paymentMethod *payment
+  }
+)
+
+func (p *payment) sendMoneyTo(sender, receipt string, money *money) {
+  fmt.Printf("send %f %s from %s to %s\n", money.amount, money.currency, sender, receipt)
+}
+
+func (g *gateway) findAccountByEmail(email string) (*account, error) {
+  for _, account := range g.accounts {
+    if account.email == email {
+      return account, nil
+    }
+  }
+  return nil, errors.New("no account found")
+}
+
+func (g *gateway) processTransaction(tx *transaction) {
+  fmt.Printf("transfered %f %s from %s to %s at %v\n", tx.amount, tx.from.currency, tx.from.owner, tx.to.owner, tx.date)
+  tx.from.balance -= tx.amount
+}
+
+func (sc *shoppingCart) checkout(payeeEmail string) {
+  var total float64
+
+  for _, item := range sc.items {
+    total += item.price
+  }
+
+  sc.paymentMethod.pay(payeeEmail, sc.shopEmailAddress, total)
+}
+
+func (b *bankAdapter) pay(fromEmail, toEmail string, amount float64) {
+  fromAccount, err := b.gateway.findAccountByEmail(fromEmail)
+  if err != nil {
+    fmt.Printf("error %v\n", err)
+    return
+  }
+
+  toAccount, err := b.gateway.findAccountByEmail(toEmail)
+  if err != nil {
+    fmt.Printf("error %v\n", err)
+    return
+  }
+
+  tx := &transaction{
+    from:   fromAccount,
+    to:     toAccount,
+    amount: amount,
+    date:   time.Now(),
+    reason: "payment to store",
+  }
+  b.gateway.processTransaction(tx)
+}
+
+func (p *payPalAdapter) pay(fromEmail, toEmail string, amount float64) {
+  p.paymentMethod.sendMoneyTo(fromEmail, toEmail, &money{
+    amount:   amount,
+    currency: "EUR",
+  })
+}
+
+func main() {
+  items := []*item{
+    {
+      name:  "jam",
+      price: 34,
+    },
+    {
+      name:  "peanuts",
+      price: 5,
+    },
+  }
+  cart := &shoppingCart{
+    items:            items,
+    paymentMethod:    new(payPalAdapter),
+    shopEmailAddress: "example@example.com",
+  }
+
+  cart.checkout("shop@amazon.com")
+}
+```
 
 ### Worker pool
 
