@@ -14,7 +14,7 @@
 ## Structural patterns
 
 - [Adapter](#adapter)
-- Bridge
+- [Bridge](#bridge)
 - Composite
 - Decorator
 - Facade
@@ -820,6 +820,157 @@ func main() {
   }
 
   cart.checkout("shop@amazon.com")
+}
+```
+
+### Bridge
+
+When we want to extend a class of other not using inheritance but composition.
+
+```go
+type (
+    channel uint16
+    volume  float64
+    
+    device struct {
+        enabled bool
+        volume  volume
+        channel channel
+    }
+    deviceIface interface {
+        isEnabled() bool
+        enable()
+        disable()
+        getVolume() volume
+        setVolume(volume)
+        getChannel() channel
+        setChannel(channel)
+    }
+    
+    remote struct {
+        device deviceIface
+    }
+    remoteIface interface {
+        togglePower()
+        volumeDown()
+        volumeUp()
+        channelDown()
+        channelUp()
+    }
+    
+    advancedRemote struct {
+        *remote
+    }
+    advancedRemoteIface interface {
+        mute()
+    }
+)
+
+func (d *device) isEnabled() bool {
+    return d.enabled
+}
+
+func (d *device) enable() {
+    d.enabled = true
+}
+
+func (d *device) disable() {
+    d.enabled = false
+}
+
+func (d *device) getVolume() volume {
+    return d.volume
+}
+
+func (d *device) setVolume(v volume) {
+    d.volume = v
+}
+
+func (d *device) getChannel() channel {
+    return d.channel
+}
+
+func (d *device) setChannel(c channel) {
+    d.channel = c
+}
+
+func newDevice() *device {
+    return &device{}
+}
+
+func newRemote(device deviceIface) *remote {
+    return &remote{
+        device: device,
+    }
+}
+
+func newAdvanceRemote(device deviceIface) *advancedRemote {
+    ar := &advancedRemote{
+        remote: newRemote(device),
+    }
+    return ar
+}
+
+func (r *remote) togglePower() {
+    if r.device.isEnabled() {
+        r.device.disable()
+    } else {
+        r.device.enable()
+    }
+    
+    fmt.Printf("toggle power %v to device\n", r.device.isEnabled())
+}
+
+func (r *remote) volumeDown() {
+    fmt.Printf("sending volume down (%f) to device\n", r.device.getVolume())
+    if r.device.getVolume() == 0 {
+        return
+    }
+    r.device.setVolume(r.device.getVolume() - 1)
+}
+
+func (r *remote) volumeUp() {
+    fmt.Printf("sending volume up (%f) to device\n", r.device.getVolume())
+    if r.device.getVolume() == 10 {
+        return
+    }
+    r.device.setVolume(r.device.getVolume() + 1)
+}
+
+func (r *remote) channelDown() {
+    fmt.Printf("sending channel down to device (%d)\n", r.device.getChannel())
+    if r.device.getChannel() == 0 {
+        r.device.setChannel(10)
+    }
+    r.device.setChannel(r.device.getChannel() - 1)
+}
+
+func (r *remote) channelUp() {
+    fmt.Printf("sending channel up to device (%d)\n", r.device.getChannel())
+    if r.device.getChannel() == 10 {
+        r.device.setChannel(0)
+    }
+    r.device.setChannel(r.device.getChannel() + 1)
+}
+
+func (ar *advancedRemote) mute() {
+    ar.device.setVolume(0)
+}
+
+func main() {
+    radio := newDevice()
+    tv := newDevice()
+    
+    radioRemote := newRemote(radio)
+    tvRemote := newAdvanceRemote(tv)
+    
+    radioRemote.togglePower()
+    radioRemote.channelDown()
+    radioRemote.volumeUp()
+    
+    tvRemote.togglePower()
+    tvRemote.volumeUp()
+    tvRemote.mute()
 }
 ```
 
