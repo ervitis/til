@@ -980,119 +980,119 @@ Wrap inside an interface common operations that will be implemented by other com
 
 ```go
 import (
-	"fmt"
-	"github.com/google/uuid"
+    "fmt"
+    "github.com/google/uuid"
 )
 
 type (
-	coordinate float64
-
-	graphicIface interface {
-		move(coordinate, coordinate)
-		draw()
-		getID() int
-	}
-
-	dot struct {
-		ID   int
-		x, y coordinate
-	}
-
-	circle struct {
-		radius float64
-		*dot
-	}
-
-	compoundGraphic struct {
-		children []graphicIface
-	}
-	compoundGraphicIface interface {
-		add(graphicIface)
-		remove(graphicIface)
-	}
+    coordinate float64
+    
+    graphicIface interface {
+        move(coordinate, coordinate)
+        draw()
+        getID() int
+    }
+    
+    dot struct {
+        ID   int
+        x, y coordinate
+    }
+    
+    circle struct {
+        radius float64
+        *dot
+    }
+    
+    compoundGraphic struct {
+        children []graphicIface
+    }
+    compoundGraphicIface interface {
+        add(graphicIface)
+        remove(graphicIface)
+    }
 )
 
 var (
-	uidGenerator uuid.UUID
+    uidGenerator uuid.UUID
 )
 
 func newDot(x, y coordinate) graphicIface {
-	uidGenerator = uuid.New()
-	return &dot{ID: int(uidGenerator.ID()), x: x, y: y}
+    uidGenerator = uuid.New()
+    return &dot{ID: int(uidGenerator.ID()), x: x, y: y}
 }
 
 func newCircle(radius float64, x, y coordinate) graphicIface {
-	uidGenerator = uuid.New()
-	return &circle{radius: radius, dot: &dot{ID: int(uidGenerator.ID()), x: x, y: y}}
+    uidGenerator = uuid.New()
+    return &circle{radius: radius, dot: &dot{ID: int(uidGenerator.ID()), x: x, y: y}}
 }
 
 func newCompoundGraphic() *compoundGraphic {
-	return &compoundGraphic{children: make([]graphicIface, 0)}
+    return &compoundGraphic{children: make([]graphicIface, 0)}
 }
 
 func (d *dot) move(x, y coordinate) {
-	fmt.Printf("moving to %f,%f\n", x, y)
-	d.x = x
-	d.y = y
+    fmt.Printf("moving to %f,%f\n", x, y)
+    d.x = x
+    d.y = y
 }
 
 func (d *dot) draw() {
-	fmt.Printf("dot at %f,%f\n", d.x, d.y)
+    fmt.Printf("dot at %f,%f\n", d.x, d.y)
 }
 
 func (d *dot) getID() int {
-	return d.ID
+    return d.ID
 }
 
 func (c *circle) draw() {
-	fmt.Printf("circle at %f,%f with radius %f\n", c.x, c.y, c.radius)
+    fmt.Printf("circle at %f,%f with radius %f\n", c.x, c.y, c.radius)
 }
 
 func (c *circle) getID() int {
-	return c.ID
+    return c.ID
 }
 
 func (cg *compoundGraphic) add(child graphicIface) {
-	cg.children = append(cg.children, child)
+    cg.children = append(cg.children, child)
 }
 
 func (cg *compoundGraphic) remove(child graphicIface) {
-	for k, v := range cg.children {
-		if child.getID() == v.getID() {
-			cg.children = append(cg.children[:k], cg.children[k+1:]...)
-		}
-	}
+    for k, v := range cg.children {
+        if child.getID() == v.getID() {
+            cg.children = append(cg.children[:k], cg.children[k+1:]...)
+        }
+    }
 }
 
 func (cg *compoundGraphic) move(x, y coordinate) {
-	fmt.Printf("moving to %f,%f\n", x, y)
-	for _, v := range cg.children {
-		v.move(x, y)
-	}
+    fmt.Printf("moving to %f,%f\n", x, y)
+    for _, v := range cg.children {
+        v.move(x, y)
+    }
 }
 
 func (cg *compoundGraphic) draw() {
-	for _, v := range cg.children {
-		v.draw()
-	}
+    for _, v := range cg.children {
+        v.draw()
+    }
 }
 
 func main() {
-	dot1 := newDot(4, 2)
-	dot2 := newDot(19, 11)
-	circle1 := newCircle(2, 10, 5)
-
-	dot1.draw()
-	dot1.move(2, 4)
-	cg := newCompoundGraphic()
-	cg.add(dot1)
-	cg.add(dot2)
-	cg.add(circle1)
-	cg.move(1, 8)
-	cg.draw()
-
-	cg.remove(dot1)
-	cg.draw()
+    dot1 := newDot(4, 2)
+    dot2 := newDot(19, 11)
+    circle1 := newCircle(2, 10, 5)
+    
+    dot1.draw()
+    dot1.move(2, 4)
+    cg := newCompoundGraphic()
+    cg.add(dot1)
+    cg.add(dot2)
+    cg.add(circle1)
+    cg.move(1, 8)
+    cg.draw()
+    
+    cg.remove(dot1)
+    cg.draw()
 }
 ```
 
