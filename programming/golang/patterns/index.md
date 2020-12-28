@@ -17,7 +17,7 @@
 - [Bridge](#bridge)
 - [Composite](#composite)
 - [Decorator](#decorator)
-- Facade
+- [Facade](#facade)
 - Flyweight
 - Proxy
 
@@ -1212,6 +1212,159 @@ func main() {
 	encSource.writeData([]byte(`this is encrypted`))
 	readData := string(encSource.readData())
 	fmt.Println(readData)
+}
+```
+
+### Facade
+
+When we want to abstract a complex implementation
+
+```go
+type (
+	account struct {
+		name string
+	}
+
+	walletFacade struct {
+		account      *account
+		wallet       *wallet
+		securityCode *securityCode
+		notification *notification
+		ledger       *ledger
+	}
+
+	securityCode struct {
+		code int
+	}
+
+	wallet struct {
+		balance int
+	}
+
+	ledger struct{}
+
+	notification struct{}
+)
+
+func newSecurityCode(code int) *securityCode {
+	return &securityCode{
+		code: code,
+	}
+}
+
+func (s *securityCode) checkCode(incomingCode int) error {
+	if s.code != incomingCode {
+		return fmt.Errorf("Security Code is incorrect")
+	}
+	fmt.Println("SecurityCode Verified")
+	return nil
+}
+
+func newAccount(accountName string) *account {
+	return &account{
+		name: accountName,
+	}
+}
+
+func (a *account) checkAccount(accountName string) error {
+	if a.name != accountName {
+		return fmt.Errorf("Account Name is incorrect")
+	}
+	fmt.Println("Account Verified")
+	return nil
+}
+
+func newWallet() *wallet {
+	return &wallet{
+		balance: 0,
+	}
+}
+
+func (w *wallet) creditBalance(amount int) {
+	w.balance += amount
+	fmt.Println("Wallet balance added successfully")
+	return
+}
+
+func (w *wallet) debitBalance(amount int) error {
+	if w.balance < amount {
+		return fmt.Errorf("Balance is not sufficient")
+	}
+	fmt.Println("Wallet balance is Sufficient")
+	w.balance = w.balance - amount
+	return nil
+}
+
+func (s *ledger) makeEntry(accountID, txnType string, amount int) {
+	fmt.Printf("Make ledger entry for accountId %s with txnType %s for amount %d", accountID, txnType, amount)
+	return
+}
+
+func (n *notification) sendWalletCreditNotification() {
+	fmt.Println("Sending wallet credit notification")
+}
+
+func (n *notification) sendWalletDebitNotification() {
+	fmt.Println("Sending wallet debit notification")
+}
+
+func newWalletFacade(accountID string, code int) *walletFacade {
+	fmt.Println("Starting create account")
+	walletFacacde := &walletFacade{
+		account:      newAccount(accountID),
+		securityCode: newSecurityCode(code),
+		wallet:       newWallet(),
+		notification: &notification{},
+		ledger:       &ledger{},
+	}
+	fmt.Println("Account created")
+	return walletFacacde
+}
+
+func (w *walletFacade) addMoneyToWallet(accountID string, securityCode int, amount int) error {
+	fmt.Println("Starting add money to wallet")
+	err := w.account.checkAccount(accountID)
+	if err != nil {
+		return err
+	}
+	err = w.securityCode.checkCode(securityCode)
+	if err != nil {
+		return err
+	}
+	w.wallet.creditBalance(amount)
+	w.notification.sendWalletCreditNotification()
+	w.ledger.makeEntry(accountID, "credit", amount)
+	return nil
+}
+
+func (w *walletFacade) deductMoneyFromWallet(accountID string, securityCode int, amount int) error {
+	fmt.Println("Starting debit money from wallet")
+	err := w.account.checkAccount(accountID)
+	if err != nil {
+		return err
+	}
+	err = w.securityCode.checkCode(securityCode)
+	if err != nil {
+		return err
+	}
+	err = w.wallet.debitBalance(amount)
+	if err != nil {
+		return err
+	}
+	w.notification.sendWalletDebitNotification()
+	w.ledger.makeEntry(accountID, "credit", amount)
+	return nil
+}
+
+func main() {
+	walletFacade := newWalletFacade("test", 1)
+	if err := walletFacade.addMoneyToWallet("test", 1, 10); err != nil {
+		panic(err)
+	}
+
+	if err := walletFacade.deductMoneyFromWallet("test", 1, 3); err != nil {
+		panic(err)
+	}
 }
 ```
 
