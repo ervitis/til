@@ -16,7 +16,7 @@
 - [Adapter](#adapter)
 - [Bridge](#bridge)
 - [Composite](#composite)
-- Decorator
+- [Decorator](#decorator)
 - Facade
 - Flyweight
 - Proxy
@@ -1093,6 +1093,125 @@ func main() {
     
     cg.remove(dot1)
     cg.draw()
+}
+```
+
+### Decorator
+
+When we want to add more functionality adding or transforming the input data into something else.
+
+```go
+type (
+	dataSourceIface interface {
+		writeData([]byte)
+		readData() []byte
+		close()
+	}
+
+	fileDataSource struct {
+		f        *os.File
+		fileName string
+	}
+	fileDataSourceIface interface {
+		dataSourceIface
+	}
+
+	dataSourceDecorator struct {
+		wrappee dataSourceIface
+	}
+
+	encryptionDecorator struct {
+		*dataSourceDecorator
+	}
+)
+
+func newFileDataSource(fileName string) *fileDataSource {
+	return &fileDataSource{fileName: fileName}
+}
+
+func (f *fileDataSource) open() {
+	var err error
+
+	_, err = os.Stat(f.fileName)
+	if os.IsNotExist(err) {
+		if f.f, err = os.Create(f.fileName); err != nil {
+			panic(err)
+		} else {
+			return
+		}
+	}
+
+	f.f, err = os.OpenFile(f.fileName, os.O_RDWR, 0660)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (f *fileDataSource) close() {
+	if err := f.f.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func (f *fileDataSource) writeData(data []byte) {
+	f.open()
+
+	if _, err := f.f.Write(data); err != nil {
+		panic(err)
+	}
+	if err := f.f.Close(); err != nil {
+		panic(err)
+	}
+}
+
+func (f *fileDataSource) readData() []byte {
+	f.open()
+
+	stat, _ := f.f.Stat()
+	data := make([]byte, stat.Size())
+	if _, err := f.f.Read(data); err != nil {
+		panic(err)
+	}
+	defer f.f.Close()
+	return data
+}
+
+func newDataSourceDecorator(wrappee dataSourceIface) *dataSourceDecorator {
+	return &dataSourceDecorator{wrappee: wrappee}
+}
+
+func newEncryptionDecorator(wrappee dataSourceIface) *encryptionDecorator {
+	return &encryptionDecorator{newDataSourceDecorator(wrappee)}
+}
+
+func (d *dataSourceDecorator) writeData(data []byte) {
+	d.wrappee.writeData(data)
+}
+
+func (d *dataSourceDecorator) readData() []byte {
+	return d.wrappee.readData()
+}
+
+func (ed *encryptionDecorator) writeData(data []byte) {
+	enc := make([]byte, base64.StdEncoding.EncodedLen(len(data)))
+	base64.StdEncoding.Encode(enc, data)
+	ed.wrappee.writeData(enc)
+}
+
+func (ed *encryptionDecorator) readData() []byte {
+	data := ed.wrappee.readData()
+	dec := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+	if _, err := base64.StdEncoding.Decode(dec, data); err != nil {
+		panic(err)
+	}
+	return dec
+}
+
+func main() {
+	encSource := newEncryptionDecorator(newFileDataSource("example.dat"))
+	encSource.writeData([]byte(`this is encrypted`))
+	readData := string(encSource.readData())
+	fmt.Println(readData)
 }
 ```
 
