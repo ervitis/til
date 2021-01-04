@@ -19,7 +19,7 @@
 - [Decorator](#decorator)
 - [Facade](#facade)
 - [Flyweight](#flyweight)
-- Proxy
+- [Proxy](#proxy)
 
 ## Behavioral patterns
 
@@ -1441,6 +1441,122 @@ func main() {
 	forestTrees.plantTree(2, 3, "moriawase", "green", "texture2.jpg")
 	forestTrees.plantTree(2, 3, "mori", "green", "texture1.jpg")
 	forestTrees.draw(1)
+}
+```
+
+### Proxy
+
+When we want to use a cache service that implements the same interface as another service.
+
+```go
+type (
+	video struct {
+		name string
+		ID int
+	}
+
+	youtubeIface interface {
+		listVideos() []video
+		getVideoInfo(int) *video
+		downloadVideo(int)
+	}
+
+	youtube struct{}
+
+	youtubeManager struct {
+		service youtubeIface
+	}
+
+	cachedYoutube struct{
+		service youtubeIface
+		videoCache *video
+		listVideoCache *[]video
+	}
+)
+
+var (
+	youtubePlatform = map[int]video{
+		1: {name: "hello.mp4", ID: 1},
+		2: {name: "bye.mp4", ID: 2},
+	}
+)
+
+func (y *youtube) listVideos() []video {
+	var videos []video
+	for _, v := range youtubePlatform {
+		videos = append(videos, v)
+	}
+	return videos
+}
+
+func (y *youtube) getVideoInfo(ID int) *video {
+	if v, exists := youtubePlatform[ID]; !exists {
+		return nil
+	} else {
+		return &v
+	}
+}
+
+func (y *youtube) downloadVideo(ID int) {
+	fmt.Printf("Downloading video %d\n", ID)
+}
+
+func (cy *cachedYoutube) listVideos() []video {
+	if cy.listVideoCache != nil {
+		return *cy.listVideoCache
+	}
+	l := cy.service.listVideos()
+	cy.listVideoCache = &l
+	return l
+}
+
+func (cy *cachedYoutube) downloadVideo(ID int) {
+	if cy.videoCache != nil && cy.videoCache.ID == ID {
+		fmt.Printf("Downloading cached video\n")
+	}
+	cy.service.downloadVideo(ID)
+}
+
+func (cy *cachedYoutube) getVideoInfo(ID int) *video {
+	if cy.videoCache != nil && cy.videoCache.ID == ID {
+		return cy.videoCache
+	}
+	cy.videoCache = cy.service.getVideoInfo(ID)
+	return cy.videoCache
+}
+
+func newYoutubeManager(service youtubeIface) *youtubeManager {
+	return &youtubeManager{service: service}
+}
+
+func newYoutubeService() youtubeIface {
+	return &youtube{}
+}
+
+func newYoutubeCachedService(service youtubeIface) youtubeIface {
+	return &cachedYoutube{service: service}
+}
+
+func (ym *youtubeManager) renderVideoPage(ID int) {
+	info := ym.service.getVideoInfo(ID)
+	fmt.Printf("render video page video %#v", info)
+}
+
+func (ym *youtubeManager) renderListPanel() {
+	list := ym.service.listVideos()
+	fmt.Println(list)
+	fmt.Println("Finish rendering")
+}
+
+func (ym *youtubeManager) reactOnUserInput(ID int) {
+	ym.renderVideoPage(ID)
+	ym.renderListPanel()
+}
+
+func main() {
+	proxy := &cachedYoutube{service: newYoutubeService()}
+	manager := newYoutubeManager(proxy)
+	manager.reactOnUserInput(1)
 }
 ```
 
