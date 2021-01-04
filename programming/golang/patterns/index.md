@@ -18,12 +18,12 @@
 - [Composite](#composite)
 - [Decorator](#decorator)
 - [Facade](#facade)
-- Flyweight
+- [Flyweight](#flyweight)
 - Proxy
 
 ## Behavioral patterns
 
-- Chain of responsability
+- Chain of responsibility
 - Command
 - Mediator
 - Observer
@@ -1365,6 +1365,82 @@ func main() {
 	if err := walletFacade.deductMoneyFromWallet("test", 1, 3); err != nil {
 		panic(err)
 	}
+}
+```
+
+### Flyweight
+
+Separating some components to reduce memory usage sharing the objects. It can combine with the pool pattern.
+
+```go
+type (
+	treeType struct {
+		name, color, texture string
+	}
+
+	forest struct {
+		trees []*tree
+	}
+
+	tree struct {
+		x, y int
+		treeType *treeType
+	}
+)
+
+var (
+	trees []treeType
+)
+
+func (*treeType) draw(canvas, x, y int) {
+	fmt.Printf("drawing canvas %v at (%d,%d)\n", canvas, x, y)
+}
+
+func (t *tree) draw(canvas int) {
+	t.treeType.draw(canvas, t.x, t.y)
+}
+
+func (f *forest) plantTree(x, y int, name, color, texture string) {
+	tf := getTreeType(name, color, texture)
+	t := &tree{
+		x:        x,
+		y:        y,
+		treeType: tf,
+	}
+	f.trees = append(f.trees, t)
+}
+
+func (f *forest) draw(canvas int) {
+	for _, t := range f.trees {
+		t.draw(canvas)
+	}
+}
+
+func newForest() *forest {
+	return &forest{}
+}
+
+func getTreeType(name, color, texture string) *treeType {
+	for _, tree := range trees {
+		if tree.name == name && tree.color == color && tree.texture == texture {
+			return &tree
+		}
+	}
+	t := treeType{
+		name:    name,
+		color:   color,
+		texture: texture,
+	}
+	trees = append(trees, t)
+	return &t
+}
+
+func main() {
+	forestTrees := newForest()
+	forestTrees.plantTree(1, 1, "mori", "green", "texture1.jpg")
+	forestTrees.plantTree(2, 3, "moriawase", "green", "texture2.jpg")
+	forestTrees.plantTree(2, 3, "mori", "green", "texture1.jpg")
+	forestTrees.draw(1)
 }
 ```
 
