@@ -23,7 +23,7 @@
 
 ## Behavioral patterns
 
-- Chain of responsibility
+- [Chain of responsibility](#chain-of-responsibility)
 - Command
 - Mediator
 - Observer
@@ -1557,6 +1557,116 @@ func main() {
 	proxy := &cachedYoutube{service: newYoutubeService()}
 	manager := newYoutubeManager(proxy)
 	manager.reactOnUserInput(1)
+}
+```
+
+### Chain of responsibility
+
+Some objects share the same interface, and they are being executed one after one.
+
+```go
+type (
+	patient struct {
+		name string
+		doctorCheck, registrationDone, medicineReceived, paymentDone bool
+	}
+
+	reception struct {
+		next department
+	}
+
+	doctor struct {
+		next department
+	}
+
+	medical struct {
+		next department
+	}
+
+	cashier struct {
+		next department
+	}
+
+	department interface {
+		execute(*patient)
+		setNext(department)
+	}
+)
+
+func (c *cashier) execute(p *patient) {
+	if p.paymentDone {
+		fmt.Println("payment done")
+		return
+	}
+	fmt.Println("doing payment...")
+	p.paymentDone = true
+	if c.next != nil {
+		c.next.execute(p)
+	}
+}
+
+func (c *cashier) setNext(next department) {
+	c.next = next
+}
+
+func (m *medical) execute(p *patient) {
+	if p.medicineReceived {
+		fmt.Println("medicine received")
+		return
+	}
+	fmt.Println("receiving medicine")
+	p.medicineReceived = true
+	if m.next != nil {
+		m.next.execute(p)
+	}
+}
+
+func (m *medical) setNext(next department) {
+	m.next = next
+}
+
+func (d *doctor) execute(p *patient) {
+	if p.doctorCheck {
+		fmt.Println("doctor checked")
+	}
+	fmt.Println("doctor checking patient")
+	p.doctorCheck = true
+	if d.next != nil {
+		d.next.execute(p)
+	}
+}
+
+func (d *doctor) setNext(next department) {
+	d.next = next
+}
+
+func (r *reception) execute(p *patient) {
+	if p.registrationDone {
+		fmt.Println("patient registered")
+	}
+	fmt.Println("registering patient")
+	p.registrationDone = true
+	if r.next != nil {
+		r.next.execute(p)
+	}
+}
+
+func (r *reception) setNext(next department) {
+	r.next = next
+}
+
+func main() {
+	receptionist := &reception{}
+	doctor := &doctor{}
+	medical := &medical{}
+	cashier := &cashier{}
+
+	receptionist.setNext(doctor)
+	doctor.setNext(medical)
+	medical.setNext(cashier)
+
+	patient1 := &patient{name: "victor"}
+	receptionist.execute(patient1)
 }
 ```
 
