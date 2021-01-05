@@ -1839,6 +1839,78 @@ func main() {
 }
 ```
 
+### Mediator
+
+Instead of doing between the classes all the communications, the mediator will do the work.
+
+```go
+type (
+	stock struct {
+		typeStock string
+		price     float64
+	}
+
+	traderService struct {
+		stocks []*stock
+	}
+
+	trader struct {
+		service *traderService
+		stockToPlace *stock
+		interestedStocks []*stock
+	}
+)
+
+func (t *traderService) getStockOptions(typeStock string) []*stock {
+	sts := make([]*stock, 0)
+
+	if typeStock == "buy" || typeStock == "sell" {
+		for _, s := range t.stocks {
+			if s.typeStock == typeStock {
+				sts = append(sts, s)
+			}
+		}
+	}
+
+	return sts
+}
+
+func (t *traderService) pushStock(s *stock) {
+	t.stocks = append(t.stocks, s)
+}
+
+func (t *trader) placeStock(stock *stock) {
+	t.service.pushStock(stock)
+}
+
+func (t *trader) getStocks(stockType string) []*stock {
+	return t.service.getStockOptions(stockType)
+}
+
+func newTraderService() *traderService {
+	return &traderService{stocks: make([]*stock, 0)}
+}
+
+func newTrader(service *traderService) *trader {
+	return &trader{service: service}
+}
+
+func main() {
+	tradeService := newTraderService()
+
+	traderBBVA := newTrader(tradeService)
+	traderSantander := newTrader(tradeService)
+
+	traderBBVA.placeStock(&stock{"buy", 2000})
+	traderBBVA.placeStock(&stock{"sell", 20})
+	traderBBVA.placeStock(&stock{"sell", 25})
+	traderSantander.placeStock(&stock{"buy", 20560})
+	traderSantander.placeStock(&stock{"sell", 203})
+
+	fmt.Println(traderBBVA.getStocks("buy"))
+}
+```
+
 ### Worker pool
 
 From [gobyexample worker pools example](https://gobyexample.com/worker-pools)
