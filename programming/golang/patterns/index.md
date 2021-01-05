@@ -2078,6 +2078,89 @@ func main() {
 }
 ```
 
+### Strategy
+
+Write algorithms into separate classes called strategies. The class named context stores the strategies and delegates the work into them.
+
+```go
+type (
+	algIface interface {
+		execute()
+	}
+
+	lru  struct{}
+	lfu  struct{}
+	fifo struct{}
+
+	cache struct {
+		storage     map[string]string
+		alg         algIface
+		capacity    int
+		maxCapacity int
+	}
+)
+
+func (l *lru) execute() {
+	fmt.Println("using LRU")
+}
+
+func (l *lfu) execute() {
+	fmt.Println("using LFU")
+}
+
+func (l *fifo) execute() {
+	fmt.Println("using FIFO")
+}
+
+func initCache(e algIface) *cache {
+	storage := make(map[string]string)
+	return &cache{
+		storage:     storage,
+		alg:         e,
+		capacity:    0,
+		maxCapacity: 2,
+	}
+}
+
+func (c *cache) setEvictionAlgo(e algIface) {
+	c.alg = e
+}
+
+func (c *cache) add(key, value string) {
+	if c.capacity == c.maxCapacity {
+		c.evict()
+	}
+	c.capacity++
+	c.storage[key] = value
+}
+
+func (c *cache) get(key string) string {
+	v, ok := c.storage[key]
+	if ok {
+		delete(c.storage, key)
+		return v
+	}
+	return ""
+}
+
+func (c *cache) evict() {
+	c.alg.execute()
+	c.capacity--
+}
+
+func main() {
+	cache := initCache(&lru{})
+
+	cache.add("key1", "hello")
+	cache.add("key2", "bye")
+	cache.evict()
+	cache.add("key3", "hola")
+	cache.setEvictionAlgo(&fifo{})
+	cache.add("key4", "adios")
+	fmt.Println(cache.get("key3"))
+}
+```
+
 ### Worker pool
 
 From [gobyexample worker pools example](https://gobyexample.com/worker-pools)
