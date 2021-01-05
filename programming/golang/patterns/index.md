@@ -27,9 +27,9 @@
 - [Command](#command)
 - [Iterator](#iterator)
 - [Mediator](#mediator)
+- [Memento](#memento)
 - [Observer](#observer)
 - [Strategy](#strategy)
-- [Memento](#memento)
 
 ## Messaging patterns
 
@@ -1983,6 +1983,98 @@ func main() {
 
 	originator.restoreMemento(caretaker.getMemento(0))
 	fmt.Printf("State %s\n", originator.getState())
+}
+```
+
+### Observer
+
+The subscribe pattern.
+
+```go
+type (
+	editor struct {
+		events eventManagerIface
+	}
+
+	eventListenerIface interface {
+		update(string)
+	}
+
+	eventManagerIface interface {
+		subscribe(string, eventListenerIface)
+		unsubscribe(string)
+		notify(string, string)
+	}
+
+	eventManager struct {
+		listeners map[string]eventListenerIface
+	}
+
+	emailAlertsListener struct {
+		email string
+	}
+	loggingListener struct {
+		fileName string
+	}
+)
+
+func (l *emailAlertsListener) update(fileName string) {
+	fmt.Println("updating filename using email alert ", fileName)
+}
+
+func (l *loggingListener) update(fileName string) {
+	fmt.Println("updating filename in log ", fileName)
+}
+
+func (em *eventManager) subscribe(eventName string, event eventListenerIface) {
+	em.listeners[eventName] = event
+}
+
+func (em *eventManager) unsubscribe(eventName string) {
+	delete(em.listeners, eventName)
+}
+
+func (em *eventManager) notify(eventName, data string) {
+	for k, v := range em.listeners {
+		if k == eventName {
+			v.update(data)
+		}
+	}
+}
+
+func newEventManager() *eventManager {
+	return &eventManager{listeners: make(map[string]eventListenerIface)}
+}
+
+func newEditor() *editor {
+	return &editor{events: newEventManager()}
+}
+
+func (e *editor) openFile(path string) {
+	e.events.notify("open", path)
+}
+
+func (e *editor) saveFile(fileName string) {
+	e.events.notify("save", fileName)
+}
+
+func newLoggingListener(fileName string) *loggingListener {
+	return &loggingListener{fileName: fileName}
+}
+
+func newEmailAlertListener(email string) *emailAlertsListener {
+	return &emailAlertsListener{email: email}
+}
+
+func main() {
+	loggingListener := newLoggingListener("log.txt")
+	emailAlertsListener := newEmailAlertListener("victor@example.com")
+
+	editor := newEditor()
+	editor.events.subscribe("open", loggingListener)
+	editor.events.subscribe("save", emailAlertsListener)
+	editor.openFile("temp.txt")
+	editor.saveFile("temp.txt")
 }
 ```
 
