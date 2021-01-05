@@ -1916,7 +1916,74 @@ func main() {
 When we want to know the previous state of an object, save it or restore it.
 
 ```go
+type (
+	memento struct {
+		state string
+	}
 
+	caretaker struct {
+		mementoArray []*memento
+	}
+
+	originator struct {
+		state string
+	}
+)
+
+func (m *memento) getSavedState() string {
+	return m.state
+}
+
+func (e *originator) createMemento() *memento {
+	return &memento{state: e.state}
+}
+
+func (e *originator) restoreMemento(m *memento) {
+	e.state = m.getSavedState()
+}
+
+func (e *originator) setState(state string) {
+	e.state = state
+}
+
+func (e *originator) getState() string {
+	return e.state
+}
+
+func (c *caretaker) addMemento(m *memento) {
+	c.mementoArray = append(c.mementoArray, m)
+}
+
+func (c *caretaker) getMemento(index int) *memento {
+	return c.mementoArray[index]
+}
+
+func newCaretaker() *caretaker {
+	return &caretaker{mementoArray: make([]*memento, 0)}
+}
+
+func newOriginatorWithState(state string) *originator {
+	return &originator{state: state}
+}
+
+func main() {
+	caretaker := newCaretaker()
+
+	originator := newOriginatorWithState("A")
+	caretaker.addMemento(originator.createMemento())
+	fmt.Printf("State %s\n", originator.getState())
+
+	originator.setState("B")
+	caretaker.addMemento(originator.createMemento())
+	fmt.Printf("State %s\n", originator.getState())
+
+	originator.setState("C")
+	caretaker.addMemento(originator.createMemento())
+	fmt.Printf("State %s\n", originator.getState())
+
+	originator.restoreMemento(caretaker.getMemento(0))
+	fmt.Printf("State %s\n", originator.getState())
+}
 ```
 
 ### Worker pool
