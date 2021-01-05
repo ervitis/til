@@ -1911,6 +1911,14 @@ func main() {
 }
 ```
 
+### Memento
+
+When we want to know the previous state of an object, save it or restore it.
+
+```go
+
+```
+
 ### Worker pool
 
 From [gobyexample worker pools example](https://gobyexample.com/worker-pools)
