@@ -24,11 +24,12 @@
 ## Behavioral patterns
 
 - [Chain of responsibility](#chain-of-responsibility)
-- Command
-- Mediator
-- Observer
-- Strategy
-- Memento
+- [Command](#command)
+- [Iterator](#iterator)
+- [Mediator](#mediator)
+- [Observer](#observer)
+- [Strategy](#strategy)
+- [Memento](#memento)
 
 ## Messaging patterns
 
@@ -1774,6 +1775,66 @@ func main() {
 	for i, cook := range cooks {
 		fmt.Printf("cook %d:\n", i)
 		cook.executeCommands()
+	}
+}
+```
+
+### Iterator
+
+Traverse elements of a collection without exposing its underlying representation.
+
+```go
+type (
+	email struct {
+		subject, content, from, to string
+	}
+
+	emailCollection struct {
+		emails []*email
+	}
+
+	emailIteratorIface interface {
+		getNext() *email
+		hasMore() bool
+	}
+
+	emailIterator struct {
+		index  int
+		emails []*email
+	}
+)
+
+func newEmailCollection(emails ...*email) *emailCollection {
+	return &emailCollection{emails: emails}
+}
+
+func (ec *emailCollection) createIterator() emailIteratorIface {
+	return &emailIterator{emails: ec.emails}
+}
+
+func (ei *emailIterator) getNext() *email {
+	if ei.hasMore() {
+		email := ei.emails[ei.index]
+		ei.index++
+		return email
+	}
+	return nil
+}
+
+func (ei *emailIterator) hasMore() bool {
+	return ei.index < len(ei.emails)
+}
+
+func main() {
+	emailCollections := newEmailCollection([]*email{
+		{from: "victor", to: "ana", content: "hello", subject: "hello"},
+		{from: "victor2", to: "an3a", content: "hello2", subject: "hello2"},
+		{from: "victor3", to: "an3a", content: "hello3", subject: "hello3"},
+	}...)
+	emailIte := emailCollections.createIterator()
+
+	for emailIte.hasMore() {
+		fmt.Println(emailIte.getNext())
 	}
 }
 ```
