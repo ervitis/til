@@ -1670,6 +1670,114 @@ func main() {
 }
 ```
 
+### Command
+
+From [this blog post](https://www.sohamkamani.com/golang/command-pattern/) this pattern decouples the business logic in N commands doing a single command
+
+```go
+type (
+	commandIface interface {
+		execute()
+	}
+
+	restaurant struct {
+		totalDishes   int
+		cleanedDishes int
+	}
+
+	makePizzaCommand struct {
+		n int
+		*restaurant
+	}
+
+	makeSaladCommand struct {
+		n int
+		*restaurant
+	}
+
+	cleanDishesCommand struct {
+		*restaurant
+	}
+
+	cook struct {
+		commands []commandIface
+	}
+)
+
+func (c *cleanDishesCommand) execute() {
+	c.restaurant.cleanedDishes = c.restaurant.totalDishes
+	fmt.Println("dishes cleaned")
+}
+
+func (c *makeSaladCommand) execute() {
+	c.restaurant.cleanedDishes -= c.n
+	fmt.Printf("made %d salads\n", c.n)
+}
+
+func (c *makePizzaCommand) execute() {
+	c.restaurant.cleanedDishes -= c.n
+	fmt.Printf("made %d pizzas\n", c.n)
+}
+
+func newRestaurant() *restaurant {
+	return &restaurant{
+		totalDishes:   10,
+		cleanedDishes: 10,
+	}
+}
+
+func (r *restaurant) makePizza(n int) commandIface {
+	return &makePizzaCommand{
+		n:          n,
+		restaurant: r,
+	}
+}
+
+func (r *restaurant) makeSalad(n int) commandIface {
+	return &makeSaladCommand{
+		n:          n,
+		restaurant: r,
+	}
+}
+
+func (r *restaurant) cleanDishes() commandIface {
+	return &cleanDishesCommand{
+		restaurant: r,
+	}
+}
+
+func (c *cook) executeCommands() {
+	for _, c := range c.commands {
+		c.execute()
+	}
+}
+
+func main() {
+	r := newRestaurant()
+
+	tasks := []commandIface{
+		r.makeSalad(2),
+		r.makePizza(1),
+		r.makeSalad(3),
+		r.cleanDishes(),
+		r.makePizza(5),
+		r.cleanDishes(),
+	}
+
+	cooks := []*cook{{}, {}}
+
+	for i, task := range tasks {
+		cook := cooks[i%len(cooks)]
+		cook.commands = append(cook.commands, task)
+	}
+
+	for i, cook := range cooks {
+		fmt.Printf("cook %d:\n", i)
+		cook.executeCommands()
+	}
+}
+```
+
 ### Worker pool
 
 From [gobyexample worker pools example](https://gobyexample.com/worker-pools)
