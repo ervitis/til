@@ -1,1 +1,1 @@
-1. [Patterns in Golang](./patterns/index.md)
+1. [Design patterns](./patterns/index.md)

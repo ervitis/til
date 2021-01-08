@@ -1,5 +1,3 @@
-# Patterns
-
 # Design patterns
 
 ## Creational patterns
@@ -44,6 +42,8 @@
 - [Worker pool](#worker-pool)
 
 ---
+
+## Creational patterns
 
 ### Abstract factory
 
@@ -168,6 +168,8 @@ func main() {
 
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Builder
 
 ```go
@@ -273,6 +275,8 @@ func main() {
   car.engineOn()
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Factory method
 
@@ -403,6 +407,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Prototype
 
 Creating objects using a copy of them
@@ -518,11 +524,13 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Pooling
 
 This pattern is used in database libraries when it needs to create the connection and maintain the resource until its released and get back to the "pool" of resources.
 
-In Golang there is a `sync.Pool()` function but it releases randomly the elements inside of the pool.
+In Golang there is a `sync.Pool()` function, but it releases randomly the elements inside the pool.
 
 Let's take an example. How can we administrate the tables of a restaurant when clients go in or book them.
 
@@ -824,6 +832,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Bridge
 
 When we want to extend a class of other not using inheritance but composition.
@@ -975,6 +985,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Composite
 
 Wrap inside an interface common operations that will be implemented by other components
@@ -1097,6 +1109,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Decorator
 
 When we want to add more functionality adding or transforming the input data into something else.
@@ -1215,6 +1229,8 @@ func main() {
 	fmt.Println(readData)
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Facade
 
@@ -1369,6 +1385,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Flyweight
 
 Separating some components to reduce memory usage sharing the objects. It can combine with the pool pattern.
@@ -1444,6 +1462,8 @@ func main() {
 	forestTrees.draw(1)
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Proxy
 
@@ -1561,6 +1581,10 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
+## Behavioral patterns
+
 ### Chain of responsibility
 
 Some objects share the same interface, and they are being executed one after one.
@@ -1671,6 +1695,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Command
 
 From [this blog post](https://www.sohamkamani.com/golang/command-pattern/) this pattern decouples the business logic in N commands doing a single command
@@ -1779,6 +1805,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Iterator
 
 Traverse elements of a collection without exposing its underlying representation.
@@ -1838,6 +1866,8 @@ func main() {
 	}
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Mediator
 
@@ -1910,6 +1940,8 @@ func main() {
 	fmt.Println(traderBBVA.getStocks("buy"))
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Memento
 
@@ -1985,6 +2017,8 @@ func main() {
 	fmt.Printf("State %s\n", originator.getState())
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
 
 ### Observer
 
@@ -2078,6 +2112,8 @@ func main() {
 }
 ```
 
+<button><a href="#top">Back to top</a></button>
+
 ### Strategy
 
 Write algorithms into separate classes called strategies. The class named context stores the strategies and delegates the work into them.
@@ -2160,6 +2196,10 @@ func main() {
 	fmt.Println(cache.get("key3"))
 }
 ```
+
+<button><a href="#top">Back to top</a></button>
+
+---
 
 ### Worker pool
 
