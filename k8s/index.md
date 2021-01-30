@@ -54,3 +54,7 @@ If the second one fails, just edit it manually with `kubectl get sc && kubectl e
 ### Setup
 
 With `kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml`
+
+## Imperative commands
+
+[Here](./commands/index.md)
