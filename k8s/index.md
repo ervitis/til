@@ -58,3 +58,7 @@ With `kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml`
 ## Imperative commands
 
 [Here](./commands/index.md)
+
+## About secrets in K8S
+
+[Here](./secrets/index.md)
