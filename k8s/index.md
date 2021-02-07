@@ -62,3 +62,7 @@ With `kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml`
 ## About secrets in K8S
 
 [Here](./secrets/index.md)
+
+## Rolling strategy
+
+[Here](./rollingupdate/index.md)
