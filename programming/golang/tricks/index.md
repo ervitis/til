@@ -8,3 +8,9 @@ defer func() {
     io.Copy(ioutil.Discard, res.Body)
 }()
 ```
+
+## Recreate new Response body
+
+```go
+r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+```
