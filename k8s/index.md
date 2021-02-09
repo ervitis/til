@@ -66,3 +66,7 @@ With `kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml`
 ## Rolling strategy
 
 [Here](./rollingupdate/index.md)
+
+## Ingress & networking
+
+- [Ingress](./ingress/index.md)
