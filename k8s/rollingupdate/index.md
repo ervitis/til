@@ -124,3 +124,7 @@ Lets now rollback to the previous revision:
 
 
 With this, we have rolled back to the previous version of the deployment with the image = nginx:1.17.
+
+### Slowing rollouts to ensure service health
+
+When creating a pod, sometimes is not ready completely and will fail after a period of time. That's why the option `minReadySeconds` inside `spec` come handy.
