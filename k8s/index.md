@@ -69,4 +69,5 @@ With `kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml`
 
 ## Ingress & networking
 
-- [Ingress](./ingress/index.md)
+- [Ingress](./networking/index.md)
+- [Endpoints](./networking/endpoints.md)

@@ -6,7 +6,7 @@ Example of an ingress yaml file
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: test-ingress
+  name: test-networking
   namespace: critical-space
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
