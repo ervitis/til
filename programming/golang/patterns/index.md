@@ -2372,7 +2372,7 @@ func main() {
 ### or-channel
 
 When we want to do in parallel a lot of tasks and wait for them to finish without knowing the return value, we can use this pattern.
-From [Concurrency in Go: Tools and Techniques for Developers]() fixed a bug where the go routine may not be waited for the main program.
+From [Concurrency in Go: Tools and Techniques for Developers](https://www.amazon.es/Concurrency-Go-Katherine-Cox-Buday/dp/1491941197/ref=sr_1_12?__mk_es_ES=%C3%85M%C3%85%C5%BD%C3%95%C3%91&keywords=go+programming&qid=1577801642&sr=8-12) fixed a bug where the go routine may not be waited for the main program.
 
 ```go
 var or func(channels ...<-chan interface{}) <-chan interface{}
