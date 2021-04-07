@@ -32,6 +32,8 @@
 ## Concurrency patterns
 
 - [FanIn-FanOut](#fanin---fanout)
+- [Or channel](#or-channel)
+- [HealthChecks with channels](#healthchecks-with-channels)
 
 ## Idioms
 
