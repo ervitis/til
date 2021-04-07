@@ -29,7 +29,7 @@
 - [Observer](#observer)
 - [Strategy](#strategy)
 
-## Messaging patterns
+## Concurrency patterns
 
 - [FanIn-FanOut](#fanin---fanout)
 
@@ -2363,6 +2363,66 @@ func main() {
   <-done
 
   fmt.Printf("\nTime finished in %f\n", time.Since(start).Seconds())
+}
+```
+
+<button><a href="#top">Back to top</a></button>
+
+
+### or-channel
+
+When we want to do in parallel a lot of tasks and wait for them to finish without knowing the return value, we can use this pattern.
+From [Concurrency in Go: Tools and Techniques for Developers]() fixed a bug where the go routine may not be waited for the main program.
+
+```go
+var or func(channels ...<-chan interface{}) <-chan interface{}
+
+func main() {
+	or = func(channels ...<-chan interface{}) <-chan interface{} {
+		switch len(channels) {
+		case 0:
+			return nil
+		case 1:
+			return channels[0]
+		}
+
+		orDone := make(chan interface{})
+		go func() {
+			defer close(orDone)
+			switch len(channels) {
+			case 2:
+				select {
+				case <-channels[0]:
+				case <-channels[1]:
+				default:
+					select {
+					case <-channels[0]:
+					case <-channels[1]:
+					case <-channels[2]:
+					case <-or(append(channels[3:], orDone)...):
+					}
+				}
+			}
+		}()
+		return orDone
+	}
+
+	sig := func(after time.Duration) <-chan interface{} {
+		c := make(chan interface{})
+
+		go func() {
+			defer close(c)
+			time.Sleep(after)
+			fmt.Println("where am i")
+			c <- "done"
+		}()
+		<- c
+		return c
+	}
+
+	start := time.Now()
+	<-or(sig(13*time.Second), sig(5*time.Second), sig(22*time.Second))
+	fmt.Printf("done after %v\n", time.Since(start))
 }
 ```
 
