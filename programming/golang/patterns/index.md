@@ -28,6 +28,7 @@
 - [Memento](#memento)
 - [Observer](#observer)
 - [Strategy](#strategy)
+- [PubSub]()
 
 ## Concurrency patterns
 
@@ -2196,6 +2197,64 @@ func main() {
 	cache.setEvictionAlgo(&fifo{})
 	cache.add("key4", "adios")
 	fmt.Println(cache.get("key3"))
+}
+```
+
+<button><a href="#top">Back to top</a></button>
+
+---
+
+### PubSub
+
+```go
+type (
+	Message struct {
+		Topic string
+		Value []byte
+	}
+
+	Queue struct {
+		Topics map[string]chan Message
+	}
+)
+
+func NewQueue() *Queue {
+	return &Queue{Topics: map[string]chan Message{}}
+}
+
+func (q *Queue) Subscribe(topic string, handler func(m *Message)) error {
+	if _, exists := q.Topics[topic]; exists {
+		return fmt.Errorf("topic %s not exists", topic)
+	}
+
+	q.Topics[topic] = make(chan Message)
+
+	go func() {
+		for {
+			ch := <-q.Topics[topic]
+			handler(&ch)
+		}
+	}()
+	return nil
+}
+
+func (q *Queue) Publish(msg Message) error {
+	if _, exists := q.Topics[msg.Topic]; !exists {
+		return fmt.Errorf("topic %s not exists", msg.Topic)
+	}
+
+	q.Topics[msg.Topic] <- msg
+	return nil
+}
+
+func main() {
+	queue := NewQueue()
+
+	_ = queue.Subscribe("test", func(m *Message) {
+		fmt.Println(string(m.Value))
+	})
+
+	_ = queue.Publish(Message{Topic: "test", Value: []byte(`testing message pub sub`)})
 }
 ```
 
